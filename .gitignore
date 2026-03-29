@@ -1,5 +1,6 @@
 .env
 venv
 .idea/
-
+results.csv
+results.json
 
