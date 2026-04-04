@@ -1,32 +1,18 @@
-from groq import Groq
-from load_dotenv import load_dotenv
-import os, time
-from PROMPT import prompt
-from test_emails import test_emails
+import json
 
-load_dotenv()
+with open("results.json", "r") as f:
+    final = json.load(f)
 
-API_KEY = os.getenv("GROQ_KEY")
+rejected  = sum(1 for r in final if r["status"] == "rejected")
+interview = sum(1 for r in final if r["status"] == "interview")
+pending   = sum(1 for r in final if r["status"] == "pending")
+not_job   = sum(1 for r in final if r["status"] == "not_job")
 
-client = Groq(
-    api_key=API_KEY,
-)
-def classify(email):
-    t0 = time.time()
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        max_tokens=150,
-        messages=[
-            {"role": "user", "content": prompt.format(email_content=email)}
-        ]
-    )
+print(f"\n{'='*40}")
+print(f"Total classified : {len(final)}")
+print(f"Rejected         : {rejected}")
+print(f"Interviews       : {interview}")
+print(f"Pending          : {pending}")
+print(f"Not a job        : {not_job}")
 
-    return response.choices[0].message.content, time.time()-t0
-
-
-
-for email in test_emails:
-    print(f"\n--- Test {email['id']}: {email['label']} ---")
-    result, _ = classify(email["body"])  # your function
-    print(result, _)
-    time.sleep(4)
+print(f"{'='*40}")
