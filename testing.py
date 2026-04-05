@@ -1,18 +1,24 @@
-import json
+import os
+from pymongo import MongoClient, ASCENDING
+from dotenv import load_dotenv
 
-with open("results.json", "r") as f:
-    final = json.load(f)
+load_dotenv()
 
-rejected  = sum(1 for r in final if r["status"] == "rejected")
-interview = sum(1 for r in final if r["status"] == "interview")
-pending   = sum(1 for r in final if r["status"] == "pending")
-not_job   = sum(1 for r in final if r["status"] == "not_job")
+client = MongoClient(os.getenv("MONGO_URI"))
+db     = client[os.getenv("MONGO_DB")]
+emails = db["emails"]
 
-print(f"\n{'='*40}")
-print(f"Total classified : {len(final)}")
-print(f"Rejected         : {rejected}")
-print(f"Interviews       : {interview}")
-print(f"Pending          : {pending}")
-print(f"Not a job        : {not_job}")
+print(emails.count_documents({}))
 
-print(f"{'='*40}")
+
+# # see first 5 documents
+# for doc in emails.find().limit(5):
+#     print(doc)
+
+# summary counts
+for status in ["rejected", "interview", "pending", "not_job", "error"]:
+    print(f"{status}: {emails.count_documents({'status': status})}")
+
+#
+# for doc in emails.find({"status": "rejected"}).limit(5):
+#     print(doc)

@@ -114,7 +114,7 @@ for i, eid in enumerate(job_ids):
 
 print(f"Successfully fetched: {len(job_emails)} emails")
 
-
+imap.logout()
 # ── classify ──────────────────────────────────────────────
 BATCH_SIZE   = 10       # requests per batch
 WAIT_SECONDS = 61       # 1 min + 1s buffer for TPM window to reset
@@ -130,7 +130,7 @@ def parse_json_object(raw):
     return json.loads(raw[start:end])
 
 
-async def classify_single(e, model="groq/compound-mini"):
+async def classify_single(e, model="llama-3.1-8b-instant"):
     """Classify one email. Retries on transient errors only — 429s never happen with batch strategy."""
     prompt = f"""You are a job application email classifier.
 
@@ -268,5 +268,3 @@ print(f"Pending          : {pending}")
 print(f"Not a job        : {not_job}")
 print(f"Errors           : {errors}")
 print(f"{'='*40}")
-
-imap.logout()
