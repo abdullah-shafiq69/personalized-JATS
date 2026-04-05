@@ -7,6 +7,8 @@
 ![Groq](https://img.shields.io/badge/Groq-llama--3.1--8b-orange)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
+**Repository:** [github.com/abdullah-shafiq69/personalized-JATS](https://github.com/abdullah-shafiq69/personalized-JATS)
+
 ---
 
 ## Table of contents
@@ -101,15 +103,19 @@ Switching to one email per call fixes this entirely. Each call has a focused, un
 ## Project structure
 
 ```
-job-tracker/
-├── backfill.py        ← run once to process all existing emails
-├── listener.py        ← runs forever via IMAP IDLE
-├── pipeline.py        ← shared: classify + store logic
-├── db.py              ← MongoDB connection, index, insert, dedup
-├── import_json.py     ← one-off: import existing results.json into MongoDB
+personalized-JATS/
+├── backfill.py            ← run once to process all existing emails
+├── backfill_csv_json.py   ← backfill variant that exports to CSV + JSON
+├── listener.py            ← runs forever via IMAP IDLE
+├── pipeline.py            ← shared: classify + store logic
+├── db.py                  ← MongoDB connection, index, insert, dedup
+├── testing.py             ← testing + experimentation scripts
+├── .gitignore
 ├── requirements.txt
-└── .env
+└── README.md
 ```
+
+> **Note:** `.env` is gitignored and must be created manually — see [Setup](#setup).
 
 ---
 
@@ -127,8 +133,8 @@ job-tracker/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/yourname/jats.git
-cd jats
+git clone https://github.com/abdullah-shafiq69/personalized-JATS.git
+cd personalized-JATS
 ```
 
 ### 2. Create and activate virtual environment
@@ -187,12 +193,6 @@ Open **MongoDB Compass** → connect to `mongodb://localhost:27017`:
 - Collection name: `emails`
 - Hit Create Database
 
-Or via mongosh:
-```js
-use jobtracker
-db.createCollection("emails")
-```
-
 ---
 
 ## Usage
@@ -205,13 +205,18 @@ python backfill.py
 
 Searches your inbox using 18 job-related keyword patterns, fetches all matching emails, classifies them one by one, and stores results in MongoDB. Already-stored emails are automatically skipped so it is safe to rerun.
 
+To also export results to CSV and JSON:
+
+```bash
+python backfill_csv_json.py
+```
+
 Sample output:
 ```
 BODY "your application"                       → 42 found
 BODY "unfortunately"                          → 38 found
 ...
 Total unique candidates: 813
-Fetching 813 emails...
 
 ========================================
 Total emails     : 813
@@ -223,7 +228,6 @@ ETA              : ~83.0 min
 
 Batch 1/82 — classifying 10 emails...
   Waiting 61s...
-Batch 2/82 — classifying 10 emails...
 ...
 Pipeline done.
 
@@ -242,7 +246,7 @@ Not a job        : 401
 python listener.py
 ```
 
-Connects to Gmail via IMAP IDLE. The moment a new email lands in your inbox it is fetched, classified, and stored in MongoDB — typically within 2-3 seconds. Automatically reconnects if the connection drops.
+Connects to Gmail via IMAP IDLE. The moment a new email lands in your inbox it is fetched, classified, and stored in MongoDB. Automatically reconnects if the connection drops.
 
 Sample output:
 ```
@@ -253,14 +257,6 @@ New emails detected: 1
   Classifying 1 emails in 1 batches...
   Batch 1/1 — 1 requests...
   Pipeline done. 1 emails processed.
-```
-
-### Import existing JSON results (optional)
-
-If you already have a `results.json` from a previous run:
-
-```bash
-python import_json.py
 ```
 
 ---
@@ -394,7 +390,7 @@ for doc in emails.find().sort("_id", -1).limit(10):
 - Docker + docker-compose setup
 - Support for Outlook / other IMAP providers
 - Frontend dashboard to visualize application stats
-- Export to CSV / Google Sheets
+- Export to Google Sheets
 
 ---
 
